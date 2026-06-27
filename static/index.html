@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Review Agent Console</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- DOMPurify for XSS protection -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="glass-panel header">
+            <div class="logo">
+                <h1>AI Code Reviewer <span>Console</span></h1>
+            </div>
+            <div class="status-bar">
+                <div class="status-indicator">
+                    <span class="dot" id="health-dot"></span>
+                    <span id="health-text">API: Checking...</span>
+                </div>
+                <div class="status-indicator">
+                    <span class="dot mock-dot" id="provider-dot"></span>
+                    <span id="provider-text">Provider: Active</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Left Panel: Input -->
+            <aside class="glass-panel left-panel">
+                <h2>Submit Code</h2>
+                <div class="form-group">
+                    <label for="filename">Filename</label>
+                    <input type="text" id="filename" placeholder="e.g., app.py" value="main.py">
+                </div>
+                <div class="form-group">
+                    <label for="code">Source Code</label>
+                    <textarea id="code" placeholder="Paste your code here..."></textarea>
+                </div>
+                <button id="submit-btn" class="btn-primary">
+                    <span class="btn-text">Run Review</span>
+                    <span class="loader hidden" id="submit-loader"></span>
+                </button>
+            </aside>
+
+            <!-- Center Panel: Report -->
+            <main class="glass-panel center-panel">
+                <div class="panel-header">
+                    <h2>Review Report</h2>
+                    <div id="task-status" class="badge badge-idle">Idle</div>
+                </div>
+                
+                <div id="metrics-bar" class="metrics-bar hidden">
+                    <div class="metric-card">
+                        <span class="metric-label">Score</span>
+                        <span class="metric-value" id="val-score">-</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Risk Level</span>
+                        <span class="metric-value" id="val-risk">-</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Total Time</span>
+                        <span class="metric-value" id="val-time">- ms</span>
+                    </div>
+                </div>
+
+                <div id="error-box" class="error-box hidden">
+                    <h3>Task Failed</h3>
+                    <p id="error-message"></p>
+                    <small>Review ID: <span id="error-review-id"></span></small>
+                </div>
+
+                <div id="report-content" class="report-content">
+                    <div class="placeholder-text">Submit code to see the review report here...</div>
+                </div>
+                <div class="xss-warning hidden" id="xss-warning">
+                    ⚠️ Markdown rendering is sanitized via DOMPurify to prevent XSS.
+                </div>
+            </main>
+
+            <!-- Right Panel: Agent Details -->
+            <aside class="glass-panel right-panel">
+                <h2>Agent Execution</h2>
+                <div class="agent-list" id="agent-list">
+                    <div class="placeholder-text">Waiting for execution...</div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Bottom Panel: History -->
+        <footer class="glass-panel history-panel">
+            <h2>History Log</h2>
+            <div class="table-container">
+                <table id="history-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Filename</th>
+                            <th>Status</th>
+                            <th>Score</th>
+                            <th>Risk</th>
+                            <th>Latency (ms)</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-body">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </footer>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

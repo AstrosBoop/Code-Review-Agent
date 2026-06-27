@@ -154,3 +154,11 @@ async def get_history(limit: int = 50, offset: int = 0):
     """
     history = db.get_history(limit=limit, offset=offset)
     return {"history": history}
+
+# 挂载静态文件目录 (必须放在所有 API 路由之后，以免覆盖 /api)
+from fastapi.staticfiles import StaticFiles
+import os
+
+static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "static")
+os.makedirs(static_dir, exist_ok=True)
+app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
