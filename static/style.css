@@ -36,7 +36,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    height: calc(100vh - 3rem);
+    min-height: calc(100vh - 3rem);
 }
 
 /* Glassmorphism Panel Base */
@@ -192,6 +192,7 @@ textarea {
 .center-panel {
     display: flex;
     flex-direction: column;
+    max-height: calc(100vh - 6rem);
     overflow-y: auto;
 }
 
@@ -296,6 +297,11 @@ textarea {
 .error-box h3 { color: var(--danger); margin-bottom: 0.5rem; }
 
 /* Right Panel: Agent Runs */
+.right-panel {
+    max-height: calc(100vh - 6rem);
+    overflow-y: auto;
+}
+
 .agent-card {
     background: rgba(15, 23, 42, 0.4);
     border: 1px solid var(--glass-border);

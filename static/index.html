@@ -33,36 +33,38 @@
 
         <div class="main-content">
             <!-- Left Panel: Input -->
-            <aside class="glass-panel left-panel" style="display: flex; flex-direction: column; gap: 1rem;">
+            <aside class="glass-panel left-panel" style="display: flex; flex-direction: column; gap: 1rem; max-height: calc(100vh - 6rem); overflow-y: auto;">
                 <h2>Submit Code</h2>
                 
-                <div class="provider-settings" style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem;">
-                    <h3 style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.75rem;">Provider Settings</h3>
-                    <div class="form-group" style="margin-bottom: 0.5rem;">
-                        <label>Provider</label>
-                        <select id="provider" style="background: rgba(15, 23, 42, 0.6); color: var(--text-main); border: 1px solid var(--glass-border); border-radius: 4px; padding: 0.4rem; font-size: 0.875rem;">
-                            <option value="deepseek">DeepSeek</option>
-                            <option value="openai">OpenAI</option>
-                            <option value="gemini">Gemini</option>
-                            <option value="claude">Claude</option>
-                            <option value="ollama">Ollama</option>
-                            <option value="mock">Mock</option>
-                        </select>
+                <details class="provider-settings" style="background: rgba(0,0,0,0.2); padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 0.5rem;">
+                    <summary style="font-size: 0.875rem; color: var(--text-muted); cursor: pointer; outline: none; font-weight: 600;">⚙️ Provider Settings</summary>
+                    <div style="margin-top: 1rem;">
+                        <div class="form-group" style="margin-bottom: 0.5rem;">
+                            <label>Provider</label>
+                            <select id="provider" style="background: rgba(15, 23, 42, 0.6); color: var(--text-main); border: 1px solid var(--glass-border); border-radius: 4px; padding: 0.4rem; font-size: 0.875rem;">
+                                <option value="deepseek">DeepSeek</option>
+                                <option value="openai">OpenAI</option>
+                                <option value="gemini">Gemini</option>
+                                <option value="claude">Claude</option>
+                                <option value="ollama">Ollama</option>
+                                <option value="mock">Mock</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0.5rem;">
+                            <label>API Key</label>
+                            <input type="password" id="api-key" placeholder="Enter API Key">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0.5rem;">
+                            <label>Base URL (Optional)</label>
+                            <input type="text" id="base-url" placeholder="https://api.deepseek.com">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0.5rem;">
+                            <label>Model Name</label>
+                            <input type="text" id="model-name" placeholder="deepseek-chat">
+                        </div>
+                        <button id="test-conn-btn" class="btn-secondary" style="margin-top: 0.5rem; width: 100%;">Test Connection</button>
                     </div>
-                    <div class="form-group" style="margin-bottom: 0.5rem;">
-                        <label>API Key</label>
-                        <input type="password" id="api-key" placeholder="Enter API Key">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0.5rem;">
-                        <label>Base URL (Optional)</label>
-                        <input type="text" id="base-url" placeholder="https://api.deepseek.com">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0.5rem;">
-                        <label>Model Name</label>
-                        <input type="text" id="model-name" placeholder="deepseek-chat">
-                    </div>
-                    <button id="test-conn-btn" class="btn-secondary" style="margin-top: 0.5rem; width: 100%;">Test Connection</button>
-                </div>
+                </details>
 
                 <div style="display: flex; gap: 1rem;">
                     <div class="form-group" style="flex: 1;">
@@ -80,18 +82,18 @@
                     </div>
                 </div>
 
-                <div class="form-group" style="flex: 1; display: flex; flex-direction: column;">
+                <div class="form-group" style="flex: 1; display: flex; flex-direction: column; margin-bottom: 0;">
                     <label for="code">Source Code</label>
-                    <textarea id="code" placeholder="Paste your code here..." style="flex: 1; min-height: 200px;"></textarea>
+                    <textarea id="code" placeholder="Paste your code here..." style="flex: 1; min-height: 250px; resize: vertical;"></textarea>
                 </div>
                 
-                <div class="action-buttons" style="display: flex; gap: 0.5rem;">
+                <div class="action-buttons" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
                     <button id="submit-btn" class="btn-primary" style="flex: 2;">
                         <span class="btn-text">Run Review</span>
                         <span class="loader hidden" id="submit-loader"></span>
                     </button>
                     <button id="clear-btn" class="btn-secondary" style="flex: 1;">Clear</button>
-                    <button id="load-btn" class="btn-secondary" style="flex: 1;">Load Example</button>
+                    <button id="load-btn" class="btn-secondary" style="flex: 1;">Example</button>
                 </div>
             </aside>
 
