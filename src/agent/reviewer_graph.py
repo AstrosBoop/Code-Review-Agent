@@ -41,8 +41,12 @@ def retrieve_rag_node(state: ReviewState):
     logger.info(f"Retrieving RAG context for {state.get('filename')}")
     start_time = time.time()
     
-    # 模拟检索操作
-    rag_context = "Best practices: Use contextvars for request tracking. Always close database connections."
+    try:
+        # 模拟检索操作（后续可以抛出异常测试降级）
+        rag_context = "Best practices: Use contextvars for request tracking. Always close database connections."
+    except Exception as e:
+        logger.warning(f"RAG unavailable: {e}. Fallback to built-in coding guidelines.")
+        rag_context = "使用内置代码规范：安全、可读性、性能、异常处理、输入校验..."
     
     metrics = state.get("metrics", {})
     metrics["rag_retrieval_time"] = time.time() - start_time

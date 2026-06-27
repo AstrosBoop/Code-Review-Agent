@@ -20,6 +20,12 @@ class DBManager:
         """获取带列名访问的数据库连接"""
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
+        
+        # 性能和并发优化 PRAGMA
+        conn.execute("PRAGMA foreign_keys = ON;")
+        conn.execute("PRAGMA journal_mode = WAL;")
+        conn.execute("PRAGMA busy_timeout = 5000;")
+        
         return closing(conn)
 
     def init_db(self):

@@ -25,10 +25,14 @@ class ReviewRequest(BaseModel):
     code: str
 
 # --- 核心后台任务 ---
-def background_review_task(review_id: str, filename: str, code: str):
+def background_review_task(review_id: str, request_id: str, filename: str, code: str):
     """
     后台执行 LangGraph 并将结果持久化到 SQLite 中
     """
+    from src.api.middleware import request_id_context
+    # 恢复 contextvar
+    request_id_context.set(request_id)
+    
     logger.info(f"Starting background review task for review_id: {review_id}")
     
     initial_state = {
@@ -93,22 +97,30 @@ def background_review_task(review_id: str, filename: str, code: str):
         db.update_review(review_id, {"status": "failed", "report": str(e)})
 
 # --- 路由 ---
-@app.post("/review")
+@app.get("/api/v1/health")
+async def health_check():
+    """健康检查接口"""
+    return {"status": "healthy"}
+
+@app.post("/api/v1/review")
 async def start_review(req: ReviewRequest, background_tasks: BackgroundTasks):
     """
     提交代码审查任务（异步），返回唯一的 review_id
     """
+    from src.api.middleware import request_id_context
+    current_request_id = request_id_context.get()
+    
     logger.info(f"Received review request for filename: {req.filename}")
     
     # 在数据库中创建 pending 状态的记录
     review_id = db.create_review(req.filename, req.code)
     
-    # 派发后台任务
-    background_tasks.add_task(background_review_task, review_id, req.filename, req.code)
+    # 派发后台任务 (显式传入 request_id)
+    background_tasks.add_task(background_review_task, review_id, current_request_id, req.filename, req.code)
     
     return {"review_id": review_id, "status": "pending", "message": "Review task is running in the background."}
 
-@app.get("/review/{review_id}")
+@app.get("/api/v1/review/{review_id}")
 async def get_review(review_id: str):
     """
     获取单个审查报告及其相关的 metrics
@@ -118,7 +130,24 @@ async def get_review(review_id: str):
         raise HTTPException(status_code=404, detail="Review not found")
     return review
 
-@app.get("/history")
+@app.get("/api/v1/review/{review_id}/status")
+async def get_review_status(review_id: str):
+    """
+    获取单个审查报告的轻量级状态（用于前端轮询）
+    """
+    review = db.get_review(review_id)
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    
+    return {
+        "review_id": review["id"],
+        "status": review["status"],
+        "score": review.get("score"),
+        "risk_level": review.get("risk_level"),
+        "total_latency_ms": review.get("total_latency_ms")
+    }
+
+@app.get("/api/v1/history")
 async def get_history(limit: int = 50, offset: int = 0):
     """
     获取历史记录
