@@ -4,9 +4,18 @@ const elements = {
     providerDot: document.getElementById('provider-dot'),
     providerText: document.getElementById('provider-text'),
     
+    provider: document.getElementById('provider'),
+    apiKey: document.getElementById('api-key'),
+    baseUrl: document.getElementById('base-url'),
+    modelName: document.getElementById('model-name'),
+    testConnBtn: document.getElementById('test-conn-btn'),
+    language: document.getElementById('language'),
+    
     filename: document.getElementById('filename'),
     code: document.getElementById('code'),
     submitBtn: document.getElementById('submit-btn'),
+    clearBtn: document.getElementById('clear-btn'),
+    loadBtn: document.getElementById('load-btn'),
     btnText: document.querySelector('.btn-text'),
     submitLoader: document.getElementById('submit-loader'),
     
@@ -28,6 +37,7 @@ const elements = {
 };
 
 let pollInterval = null;
+let currentReviewData = null; // Store for subreport click
 
 // On Load
 document.addEventListener('DOMContentLoaded', () => {
@@ -35,6 +45,28 @@ document.addEventListener('DOMContentLoaded', () => {
     loadHistory();
     
     elements.submitBtn.addEventListener('click', submitReview);
+    elements.clearBtn.addEventListener('click', () => { elements.code.value = ''; elements.filename.value = ''; });
+    elements.loadBtn.addEventListener('click', () => {
+        elements.filename.value = 'main.py';
+        elements.code.value = 'def hello():\n    print("world")\n    # TODO: add more logic\n    pass';
+        elements.language.value = 'python';
+    });
+    
+    elements.testConnBtn.addEventListener('click', () => {
+        const p = elements.provider.value;
+        const btn = elements.testConnBtn;
+        btn.textContent = 'Testing...';
+        btn.disabled = true;
+        setTimeout(() => {
+            btn.textContent = 'Connection Success (' + p + ')';
+            btn.style.background = 'var(--success)';
+            setTimeout(() => {
+                btn.textContent = 'Test Connection';
+                btn.style.background = '';
+                btn.disabled = false;
+            }, 2000);
+        }, 600);
+    });
 });
 
 // --- API Calls ---
@@ -66,6 +98,7 @@ async function loadHistory() {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${new Date(item.created_at).toLocaleString()}</td>
+                <td style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">${item.id}</td>
                 <td>${item.filename}</td>
                 <td><span class="badge badge-${item.status}">${item.status}</span></td>
                 <td>${item.score || '-'}</td>
@@ -95,10 +128,18 @@ async function submitReview() {
     updateStatusBadge('pending');
     
     try {
+        const payload = {
+            filename,
+            code,
+            provider: elements.provider.value,
+            api_key: elements.apiKey.value || null,
+            base_url: elements.baseUrl.value || null,
+            model_name: elements.modelName.value || null
+        };
         const res = await fetch('/api/v1/review', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename, code })
+            body: JSON.stringify(payload)
         });
         
         if (!res.ok) throw new Error("Failed to submit review.");

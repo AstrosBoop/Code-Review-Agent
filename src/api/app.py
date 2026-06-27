@@ -19,10 +19,16 @@ app.add_middleware(RequestIDMiddleware)
 # 构建全局的 LangGraph 图
 graph = build_review_graph()
 
+from typing import Optional
+
 # --- 核心请求模型 ---
 class ReviewRequest(BaseModel):
     filename: str
     code: str
+    provider: Optional[str] = None
+    api_key: Optional[str] = None
+    base_url: Optional[str] = None
+    model_name: Optional[str] = None
 
 # --- 核心后台任务 ---
 def background_review_task(review_id: str, request_id: str, filename: str, code: str):
