@@ -1,0 +1,14 @@
+services:
+  agent-api:
+    build: .
+    container_name: code-review-agent
+    ports:
+      - "7861:7861"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    environment:
+      - DB_PATH=/app/data/code_review.db
+      # Add LLM API keys below if you want them baked in, otherwise they can be passed from frontend
+      # - OPENAI_API_KEY=your_key_here
+      # - DEEPSEEK_API_KEY=your_key_here

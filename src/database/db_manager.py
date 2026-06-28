@@ -1,13 +1,13 @@
 import sqlite3
 import uuid
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Any
-
-# 默认将数据库文件放在项目根目录下的 data 文件夹
-DEFAULT_DB_PATH = Path(__file__).parent.parent.parent / "data" / "code_review.db"
-
 from contextlib import closing
+
+# Use environment variable for database path if provided, otherwise default to local root
+DEFAULT_DB_PATH = os.getenv("DB_PATH", str(Path(__file__).parent.parent.parent / "data" / "code_review.db"))
 
 class DBManager:
     def __init__(self, db_path: str | Path = DEFAULT_DB_PATH):
