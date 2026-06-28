@@ -1,8 +1,10 @@
 const elements = {
     healthDot: document.getElementById('health-dot'),
     healthText: document.getElementById('health-text'),
-    providerDot: document.getElementById('provider-dot'),
-    providerText: document.getElementById('provider-text'),
+    
+    headerProvider: document.getElementById('header-provider'),
+    headerModel: document.getElementById('header-model'),
+    headerFallback: document.getElementById('header-fallback'),
     
     provider: document.getElementById('provider'),
     apiKey: document.getElementById('api-key'),
@@ -19,18 +21,17 @@ const elements = {
     btnText: document.querySelector('.btn-text'),
     submitLoader: document.getElementById('submit-loader'),
     
-    taskStatus: document.getElementById('task-status'),
-    metricsBar: document.getElementById('metrics-bar'),
-    valScore: document.getElementById('val-score'),
-    valRisk: document.getElementById('val-risk'),
-    valTime: document.getElementById('val-time'),
+    taskStatus: document.getElementById('review-status-badge'),
+    metricsBar: document.getElementById('metrics-container'),
+    valScore: document.getElementById('metric-score'),
+    valRisk: document.getElementById('metric-risk'),
+    valTime: document.getElementById('metric-time'),
     
-    errorBox: document.getElementById('error-box'),
-    errorMessage: document.getElementById('error-message'),
-    errorReviewId: document.getElementById('error-review-id'),
+    reqIdContainer: document.getElementById('request-id-container'),
+    reportReqId: document.getElementById('report-request-id'),
+    copyReqId: document.getElementById('copy-req-id'),
     
     reportContent: document.getElementById('report-content'),
-    xssWarning: document.getElementById('xss-warning'),
     
     agentList: document.getElementById('agent-list'),
     historyBody: document.getElementById('history-body')
@@ -43,6 +44,20 @@ let currentReviewData = null; // Store for subreport click
 document.addEventListener('DOMContentLoaded', () => {
     checkHealth();
     loadHistory();
+    updateProviderHeader();
+    
+    elements.provider.addEventListener('change', updateProviderHeader);
+    elements.modelName.addEventListener('input', updateProviderHeader);
+    
+    elements.copyReqId.addEventListener('click', () => {
+        const text = elements.reportReqId.textContent;
+        if (text) {
+            navigator.clipboard.writeText(text);
+            const originalText = elements.copyReqId.textContent;
+            elements.copyReqId.textContent = 'Copied!';
+            setTimeout(() => { elements.copyReqId.textContent = originalText; }, 2000);
+        }
+    });
     
     elements.submitBtn.addEventListener('click', submitReview);
     elements.clearBtn.addEventListener('click', () => { elements.code.value = ''; elements.filename.value = ''; });
@@ -94,11 +109,15 @@ async function loadHistory() {
         const data = await res.json();
         
         elements.historyBody.innerHTML = '';
-        data.history.forEach(item => {
+        data.history.slice(0, 5).forEach((item, index) => {
+            const shortId = item.id.substring(0, 8) + '...';
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${new Date(item.created_at).toLocaleString()}</td>
-                <td style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">${item.id}</td>
+                <td style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; justify-content: flex-start;">
+                    <span title="${item.id}">${shortId}</span>
+                    <button class="btn-secondary copy-history-id" data-id="${item.id}" style="padding: 0.1rem 0.3rem; font-size: 0.7rem; border-radius: 4px;">Copy</button>
+                </td>
                 <td>${item.filename}</td>
                 <td><span class="badge badge-${item.status}">${item.status}</span></td>
                 <td>${item.score || '-'}</td>
@@ -107,6 +126,17 @@ async function loadHistory() {
                 <td><a class="action-link" onclick="fetchReviewDetails('${item.id}')">View</a></td>
             `;
             elements.historyBody.appendChild(tr);
+        });
+        
+        // Add copy listeners
+        document.querySelectorAll('.copy-history-id').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const fullId = e.target.getAttribute('data-id');
+                navigator.clipboard.writeText(fullId);
+                const old = e.target.textContent;
+                e.target.textContent = 'Copied!';
+                setTimeout(() => { e.target.textContent = old; }, 1500);
+            });
         });
     } catch (e) {
         console.error("Failed to load history", e);
@@ -201,24 +231,28 @@ async function fetchReviewDetails(reviewId) {
         elements.valRisk.textContent = data.risk_level || '-';
         elements.valTime.textContent = (data.total_latency_ms || 0) + ' ms';
         
+        // Request ID Container
+        elements.reqIdContainer.style.display = 'flex';
+        elements.reportReqId.textContent = data.id || reviewId;
+        
         // Render Agents
         renderAgents(data.agent_runs || []);
         
         // Render Markdown
         if (data.report) {
-            // XSS Protection: marked -> DOMPurify -> innerHTML
             const rawHtml = marked.parse(data.report);
             const cleanHtml = DOMPurify.sanitize(rawHtml);
             elements.reportContent.innerHTML = cleanHtml;
-            elements.xssWarning.classList.remove('hidden');
             
             // Check for Mock Fallback
-            if (data.report.includes("Mock 报告")) {
-                elements.providerDot.className = 'dot yellow';
-                elements.providerText.textContent = 'LLM Provider: Fallback Used';
+            if (data.report.includes("LLM Provider: Fallback Used") || data.report.includes("Mock 报告")) {
+                elements.headerFallback.textContent = 'On';
+                elements.headerFallback.style.color = 'var(--danger)';
+                elements.headerProvider.textContent = 'Mock Fallback';
             } else {
-                elements.providerDot.className = 'dot green';
-                elements.providerText.textContent = 'LLM Provider: Active';
+                elements.headerFallback.textContent = 'Off';
+                elements.headerFallback.style.color = 'var(--text-main)';
+                updateProviderHeader(); // reset to current selections
             }
         } else {
             elements.reportContent.innerHTML = '<div class="placeholder-text">No report content available.</div>';
@@ -250,6 +284,40 @@ function resetUI() {
     elements.xssWarning.classList.add('hidden');
     elements.reportContent.innerHTML = '<div class="loader" style="border-color:var(--primary-color); border-bottom-color:transparent; margin: 2rem auto; display:block; width: 32px; height: 32px;"></div>';
     elements.agentList.innerHTML = '<div class="placeholder-text">Waiting for execution...</div>';
+}
+
+function showReport(data, isClick = false) {
+    elements.taskStatus.className = 'badge badge-completed';
+    elements.taskStatus.textContent = 'COMPLETED';
+    elements.taskStatus.style.display = 'block';
+    
+    elements.metricsBar.classList.remove('hidden');
+    elements.valScore.textContent = data.score !== null ? data.score : 'N/A';
+    elements.valRisk.textContent = data.risk_level ? data.risk_level.toUpperCase() : 'N/A';
+    elements.valTime.textContent = data.total_latency_ms !== null ? data.total_latency_ms : '--';
+    
+    // Request ID Container
+    elements.reqIdContainer.style.display = 'flex';
+    elements.reportReqId.textContent = data.id;
+
+    if (data.report) {
+        elements.reportContent.innerHTML = DOMPurify.sanitize(marked.parse(data.report));
+        
+        // Update header fallback
+        if (data.report.includes('LLM Provider: Fallback Used')) {
+            elements.headerFallback.textContent = 'On';
+            elements.headerFallback.style.color = 'var(--danger)';
+            elements.headerProvider.textContent = 'Mock Fallback';
+        } else {
+            elements.headerFallback.textContent = 'Off';
+            elements.headerFallback.style.color = 'var(--text-main)';
+            updateProviderHeader(); // reset
+        }
+    } else {
+        elements.reportContent.innerHTML = '<div class="placeholder-text">No report generated.</div>';
+    }
+    
+    renderAgentRuns(data.agent_runs);
 }
 
 function updateStatusBadge(status) {

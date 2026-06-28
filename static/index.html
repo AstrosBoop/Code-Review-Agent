@@ -24,9 +24,10 @@
                     <span class="dot" id="health-dot"></span>
                     <span id="health-text">API: Checking...</span>
                 </div>
-                <div class="status-indicator">
-                    <span class="dot mock-dot" id="provider-dot"></span>
-                    <span id="provider-text">Provider: Active</span>
+                <div id="header-provider-info" style="font-size: 0.85rem; color: var(--text-muted); background: rgba(0,0,0,0.2); padding: 0.4rem 0.8rem; border-radius: 6px; display: flex; gap: 1rem;">
+                    <span>Provider: <span id="header-provider" style="color: var(--text-main); font-weight: 600;">DeepSeek</span></span>
+                    <span>Model: <span id="header-model" style="color: var(--text-main); font-weight: 600;">deepseek-chat</span></span>
+                    <span>Fallback: <span id="header-fallback" style="color: var(--text-main); font-weight: 600;">Off</span></span>
                 </div>
             </div>
         </header>
@@ -98,46 +99,72 @@
             </aside>
 
             <!-- Center Panel: Report -->
-            <main class="glass-panel center-panel">
-                <div class="panel-header">
+            <section class="glass-panel center-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                     <h2>Review Report</h2>
-                    <div id="task-status" class="badge badge-idle">Idle</div>
+                    <span id="review-status-badge" class="badge" style="display: none;"></span>
                 </div>
                 
-                <div id="metrics-bar" class="metrics-bar hidden">
-                    <div class="metric-card">
-                        <span class="metric-label">Score</span>
-                        <span class="metric-value" id="val-score">-</span>
-                    </div>
-                    <div class="metric-card">
-                        <span class="metric-label">Risk Level</span>
-                        <span class="metric-value" id="val-risk">-</span>
-                    </div>
-                    <div class="metric-card">
-                        <span class="metric-label">Total Time</span>
-                        <span class="metric-value" id="val-time">- ms</span>
-                    </div>
+                <div id="request-id-container" style="display: none; background: rgba(0,0,0,0.2); padding: 0.5rem 1rem; border-radius: 6px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                    <span style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted);">Request ID: <span id="report-request-id" style="color: var(--text-main);"></span></span>
+                    <button id="copy-req-id" class="btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Copy</button>
                 </div>
 
-                <div id="error-box" class="error-box hidden">
-                    <h3>Task Failed</h3>
-                    <p id="error-message"></p>
-                    <small>Review ID: <span id="error-review-id"></span></small>
+                <div id="metrics-container" class="metrics-grid hidden">
+                    <div class="metric-card">
+                        <div class="metric-value" id="metric-score">--</div>
+                        <div class="metric-label">Quality Score</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="metric-risk">--</div>
+                        <div class="metric-label">Risk Level</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="metric-time">--</div>
+                        <div class="metric-label">Latency (ms)</div>
+                    </div>
                 </div>
 
                 <div id="report-content" class="report-content">
-                    <div class="placeholder-text">Submit code to see the review report here...</div>
+                    <div class="pipeline-placeholder" style="color: var(--text-muted); font-family: var(--font-mono); padding: 2rem 1rem;">
+                        <h3 style="color: var(--text-main); margin-bottom: 1.5rem;">Review Pipeline</h3>
+                        <div style="margin-bottom: 0.75rem;">① Submit Code</div>
+                        <div style="margin-bottom: 0.75rem;">② Static Analysis</div>
+                        <div style="margin-bottom: 0.75rem;">③ RAG Retrieval</div>
+                        <div style="margin-bottom: 0.75rem;">④ Multi-Agent Review</div>
+                        <div>⑤ Final Report Synthesis</div>
+                    </div>
                 </div>
-                <div class="xss-warning hidden" id="xss-warning">
-                    ⚠️ Markdown rendering is sanitized via DOMPurify to prevent XSS.
-                </div>
-            </main>
+            </section>
 
-            <!-- Right Panel: Agent Details -->
+            <!-- Right Panel: Agents -->
             <aside class="glass-panel right-panel">
                 <h2>Agent Execution</h2>
-                <div class="agent-list" id="agent-list">
-                    <div class="placeholder-text">Waiting for execution...</div>
+                <div id="agent-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div class="agent-card" style="opacity: 0.6; padding: 1rem;">
+                        <div class="agent-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="agent-name" style="font-weight: 600;">Security Reviewer</span>
+                            <span class="badge" style="background: rgba(255,255,255,0.1); color: #ccc;">Pending</span>
+                        </div>
+                    </div>
+                    <div class="agent-card" style="opacity: 0.6; padding: 1rem;">
+                        <div class="agent-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="agent-name" style="font-weight: 600;">Quality Reviewer</span>
+                            <span class="badge" style="background: rgba(255,255,255,0.1); color: #ccc;">Pending</span>
+                        </div>
+                    </div>
+                    <div class="agent-card" style="opacity: 0.6; padding: 1rem;">
+                        <div class="agent-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="agent-name" style="font-weight: 600;">Performance Reviewer</span>
+                            <span class="badge" style="background: rgba(255,255,255,0.1); color: #ccc;">Pending</span>
+                        </div>
+                    </div>
+                    <div class="agent-card" style="opacity: 0.6; padding: 1rem;">
+                        <div class="agent-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="agent-name" style="font-weight: 600;">Synthesizer</span>
+                            <span class="badge" style="background: rgba(255,255,255,0.1); color: #ccc;">Pending</span>
+                        </div>
+                    </div>
                 </div>
             </aside>
         </div>
