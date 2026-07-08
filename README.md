@@ -40,7 +40,7 @@ graph TD
         Synthesizer[Synthesizer Node]
     end
 
-    subgraph LLM Providers
+    subgraph LLMProviders[LLM Providers]
         OpenAI[OpenAI]
         DeepSeek[DeepSeek]
         Ollama[Local Ollama]
@@ -59,9 +59,9 @@ graph TD
     Quality --> Synthesizer
     Performance --> Synthesizer
 
-    Security -.-> LLM Providers
-    Quality -.-> LLM Providers
-    Performance -.-> LLM Providers
+    Security -.-> LLMProviders
+    Quality -.-> LLMProviders
+    Performance -.-> LLMProviders
 
     Synthesizer -- "5. Updates Status & Report" --> DB
     Poll -- "6. GET /api/v1/review/{id}/status" --> API
